@@ -1,5 +1,5 @@
-github.com/agungdhewe/dwpath v0.0.0-20240526171045-bc495a093e63 h1:c2c3un22lwmY8kIhnhM0fuZrQ+dhdlKw6F5Qj+jKCmw=
-github.com/agungdhewe/dwpath v0.0.0-20240526171045-bc495a093e63/go.mod h1:588x6doLfhBTv9iohuenVaHKpVDQtDvzH4Iku9uSDNE=
+github.com/agungdhewe/dwpath v1.1.1 h1:+yXptVyfoV/AwbeHE3PC3lTw8JNxRO5OZ9IZmNqZk7A=
+github.com/agungdhewe/dwpath v1.1.1/go.mod h1:588x6doLfhBTv9iohuenVaHKpVDQtDvzH4Iku9uSDNE=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=

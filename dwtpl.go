@@ -1,9 +1,11 @@
 package dwtpl
 
-type DeviceType int
+type DeviceType string
 
 const (
-	DeviceMobile  DeviceType = 1
-	DeviceTablet  DeviceType = 2
-	DeviceDesktop DeviceType = 3
+	DeviceMobile  DeviceType = "mobile"
+	DeviceTablet  DeviceType = "tablet"
+	DeviceDesktop DeviceType = "desktop"
 )
+
+var mgr *TemplateManager

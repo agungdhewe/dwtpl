@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,6 +30,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	// untuk keperluan debug
+	mgr.SetLogOutput(log.Writer())
+
 	pagedir := filepath.Join(curdir, "pages")
 	err = mgr.CachePages(pagedir)
 	if err != nil {
@@ -36,6 +40,8 @@ func main() {
 		fmt.Println("tidak bisa cache halaman")
 		os.Exit(1)
 	}
+
+	mgr.GetPage("homes", dwtpl.DeviceMobile)
 
 	mgr.Ready()
 }

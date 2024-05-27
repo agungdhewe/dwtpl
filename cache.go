@@ -1,8 +1,8 @@
 package dwtpl
 
 import (
-	"fmt"
 	"path/filepath"
+	"text/template"
 )
 
 func (mgr *TemplateManager) CachePages(dir string) error {
@@ -12,13 +12,15 @@ func (mgr *TemplateManager) CachePages(dir string) error {
 	pattern := filepath.Join(mgr.pagesDirLocation, "*")
 	pages, err := filepath.Glob(pattern)
 	if err != nil {
+		report_error("tidak dapat mengambil data pattern %s", pattern)
 		return err
 	}
 
 	for _, pagedir := range pages {
 		pagename := filepath.Base(pagedir)
-		tpldata, ispage, err := mgr.ParsePageTemplate(pagename, pagedir)
+		tpldata, ispage, err := mgr.ParsePageTemplate(pagename, filepath.Join(pagedir, ".."))
 		if err != nil {
+			report_error("error saat parse halaman %s", pagename)
 			return err
 		}
 
@@ -27,7 +29,19 @@ func (mgr *TemplateManager) CachePages(dir string) error {
 		}
 	}
 
-	fmt.Println(mgr.cachedata)
-
 	return nil
+}
+
+func (mgr *TemplateManager) GetCachedPage(pagename string, device DeviceType) (*template.Template, bool) {
+	pagedata, pageinmap := mgr.cachedata[pagename]
+	if !pageinmap {
+		return nil, false
+	}
+
+	tpl, deviceinmap := pagedata[device]
+	if !deviceinmap {
+		return nil, false
+	}
+
+	return tpl, true
 }
