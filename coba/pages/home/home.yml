@@ -1,0 +1,9 @@
+name: "Layout untuk halaman home"
+
+device:
+  mobile:
+    - home.html
+  tablet:
+    - home.html
+  desktop:
+    - home.html
