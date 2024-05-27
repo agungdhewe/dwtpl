@@ -2,6 +2,8 @@ package dwtpl
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"path/filepath"
 	"text/template"
 
@@ -9,6 +11,10 @@ import (
 )
 
 type TemplateManager struct {
+	logger           *log.Logger
+	configuration    Configuration
+	pagesDirLocation string
+	cachedata        map[string]map[DeviceType]*template.Template
 }
 
 type Layout struct {
@@ -24,31 +30,41 @@ var mgr *TemplateManager
 
 // siapkan template manager
 // sebelum memanggil ini, harus panggil dwtpl.New() terlebih dahulu
-func NewTemplateManager() (*TemplateManager, error) {
+func New(config *Configuration) (*TemplateManager, error) {
 	var exists bool
 
-	// cek apakah modul template sudah diisiasi
-	// pertama harus panggil dwtpl.New(conf) di sebelum menggunakan TemplateManager
-	if cfg == nil {
-		return nil, fmt.Errorf("template belum diinisiasi. sebelum menggunakan template manager inisiasi dengan dwtpl.New(config)")
+	// siapkan template manager
+	mgr = &TemplateManager{
+		logger:        log.New(log.Writer(), "", log.Lmicroseconds|log.Lshortfile),
+		configuration: *config,
+		cachedata:     make(map[string]map[DeviceType]*template.Template),
 	}
 
-	// siapkan template manager
-	mgr = &TemplateManager{}
-
 	// cek apakah direktori template ada
-	exists, _ = dwpath.IsDirectoryExists(cfg.Dir)
+	exists, _ = dwpath.IsDirectoryExists(mgr.configuration.Dir)
 	if !exists {
-		return nil, fmt.Errorf("direktori template %s tidak ditemukan", cfg.Dir)
+		return nil, fmt.Errorf("direktori template %s tidak ditemukan", mgr.configuration.Dir)
 	}
 
 	return mgr, nil
 }
 
+func (mgr *TemplateManager) Ready() {
+}
+
+func (mgr *TemplateManager) SetLogOutput(w io.Writer) {
+	mgr.logger.SetOutput(w)
+}
+
+func (mgr *TemplateManager) GetConfiguration() *Configuration {
+	return &mgr.configuration
+}
+
 // mengambil daftar file-file di suatu direktori yang akan digunakan untuk melayout tampilan
 // berdasar file konfigurasi xxx.yml pada direktori tersebut
-func (mgr *TemplateManager) GetLayoutFiles(dir string) (*map[DeviceType][]string, error) {
+func (mgr *TemplateManager) GetLayoutFiles(dir string) (map[DeviceType][]string, bool, error) {
 	var err error
+	var exists bool
 
 	// siapkan untuk membaca data layout
 	basename := filepath.Base(dir)
@@ -56,16 +72,21 @@ func (mgr *TemplateManager) GetLayoutFiles(dir string) (*map[DeviceType][]string
 	ymllayoutpath := filepath.Join(dir, ymllayoutfile)
 
 	// cek file configurasi yml
-	exists, _, _ := dwpath.IsFileExists(ymllayoutpath)
+	exists, _, err = dwpath.IsFileExists(ymllayoutpath)
+	if err != nil {
+		return nil, false, err
+	}
+
+	// kalau file yml tidak ada, berarti bukan direktori halaman
 	if !exists {
-		return nil, fmt.Errorf("file %s layout tidak ditemukan", ymllayoutpath)
+		return nil, false, nil
 	}
 
 	// baca konfigurasi
 	layoutconfig := &Layout{}
 	err = readLayoutConfigYml(ymllayoutpath, layoutconfig)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// ambil daftar file sesuai device yang didefinisikan
@@ -74,12 +95,12 @@ func (mgr *TemplateManager) GetLayoutFiles(dir string) (*map[DeviceType][]string
 	files[DeviceTablet] = layoutconfig.Device.Tablet
 	files[DeviceDesktop] = layoutconfig.Device.Desktop
 
-	return &files, nil
+	return files, true, nil
 }
 
 // mengambil data halaman yang telah di parsing
 // sesuai template yang dimaksud template dari suatu direktori
-func (mgr *TemplateManager) ParseTemplate(pagename string, dir string, device DeviceType) (*template.Template, error) {
+func (mgr *TemplateManager) ParsezzzzTemplate(pagename string, dir string, device DeviceType) (*template.Template, error) {
 	var err error
 	var layoutfiles *map[DeviceType][]string
 	var pagefiles *map[DeviceType][]string
@@ -88,7 +109,7 @@ func (mgr *TemplateManager) ParseTemplate(pagename string, dir string, device De
 	// var tpl *template.Template
 
 	// ambil base layout template
-	layoutfiles, err = mgr.GetLayoutFiles(GetConfig().Dir)
+	layoutfiles, err = mgr.GetLayoutFiles(mgr.configuration.Dir)
 	if err != nil {
 		return nil, err
 	}
@@ -125,25 +146,4 @@ func (mgr *TemplateManager) ParseTemplate(pagename string, dir string, device De
 
 	// return tpl, nil
 
-}
-
-func (mgr *TemplateManager) CachePages(dir string) error {
-	var err error
-	var pages []string
-	var pagename string
-
-	pattern := filepath.Join(dir, "*")
-	pages, err = filepath.Glob(pattern)
-	if err != nil {
-		return err
-	}
-
-	for _, pagedir := range pages {
-		pagename = filepath.Base(pagedir)
-		mgr.ParseTemplate(pagename, pagedir, DeviceMobile)
-		mgr.ParseTemplate(pagename, pagedir, DeviceTablet)
-		mgr.ParseTemplate(pagename, pagedir, DeviceDesktop)
-	}
-
-	return nil
 }
