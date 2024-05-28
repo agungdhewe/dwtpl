@@ -6,8 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func readLayoutConfigYml(filepath string, layout *Layout) error {
-	var err error
+func readLayoutConfigYml(filepath string, layout *Layout) (err error) {
 	var filedata []byte
 
 	// baca file konfigurasi

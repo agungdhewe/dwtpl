@@ -9,9 +9,7 @@ import (
 
 // mengambil daftar file-file di suatu direktori yang akan digunakan untuk melayout tampilan
 // berdasar file konfigurasi xxx.yml pada direktori tersebut
-func (mgr *TemplateManager) GetLayoutFiles(dir string) (map[DeviceType][]string, bool, error) {
-	var err error
-	var exists bool
+func (mgr *TemplateManager) GetLayoutFiles(dir string) (files map[DeviceType][]string, exists bool, err error) {
 
 	// siapkan untuk membaca data layout
 	basename := filepath.Base(dir)
@@ -41,7 +39,7 @@ func (mgr *TemplateManager) GetLayoutFiles(dir string) (map[DeviceType][]string,
 	}
 
 	// ambil daftar file sesuai device yang didefinisikan
-	var files = make(map[DeviceType][]string)
+	files = make(map[DeviceType][]string)
 	files[DeviceMobile] = layoutconfig.Device.Mobile
 	files[DeviceTablet] = layoutconfig.Device.Tablet
 	files[DeviceDesktop] = layoutconfig.Device.Desktop
