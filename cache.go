@@ -1,8 +1,8 @@
 package dwtpl
 
 import (
+	"html/template"
 	"path/filepath"
-	"text/template"
 )
 
 func (mgr *TemplateManager) CachePages(dir string) error {
