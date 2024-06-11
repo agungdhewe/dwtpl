@@ -1,8 +1,9 @@
 package dwtpl
 
 import (
+	"fmt"
+	"html/template"
 	"path/filepath"
-	"text/template"
 
 	"github.com/agungdhewe/dwpath"
 )
@@ -50,7 +51,13 @@ func (mgr *TemplateManager) ParsePageTemplate(pagename string, pagesdatadir stri
 	for _, device := range []DeviceType{DeviceMobile, DeviceTablet, DeviceDesktop} {
 		var tpl *template.Template
 		files := append(pagefiles[device], layoutfiles[device]...)
-		tpl, err = template.ParseFiles(files...)
+
+		t := template.New(fmt.Sprintf("%s.html", pagename))
+		if mgr.options != nil {
+			t.Option(mgr.options...)
+		}
+
+		tpl, err = t.ParseFiles(files...)
 		if err != nil {
 			report_error("tidak dapat parse file template untuk halaman %s", pagename)
 			return nil, false, err

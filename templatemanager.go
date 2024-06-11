@@ -2,9 +2,9 @@ package dwtpl
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"log"
-	"text/template"
 
 	"github.com/agungdhewe/dwpath"
 )
@@ -14,6 +14,7 @@ type TemplateManager struct {
 	configuration    Configuration
 	pagesDirLocation string
 	cachedata        map[string]map[DeviceType]*template.Template
+	options          []string
 }
 
 type Layout struct {
@@ -27,7 +28,7 @@ type Layout struct {
 
 // siapkan template manager
 // sebelum memanggil ini, harus panggil dwtpl.New() terlebih dahulu
-func New(config *Configuration) (*TemplateManager, error) {
+func New(config *Configuration, opt ...string) (*TemplateManager, error) {
 	var exists bool
 
 	// siapkan template manager
@@ -35,6 +36,7 @@ func New(config *Configuration) (*TemplateManager, error) {
 		logger:        log.New(log.Writer(), "", 0),
 		configuration: *config,
 		cachedata:     make(map[string]map[DeviceType]*template.Template),
+		options:       opt,
 	}
 
 	// cek apakah direktori template ada
@@ -49,6 +51,14 @@ func New(config *Configuration) (*TemplateManager, error) {
 }
 
 func (mgr *TemplateManager) Ready() {
+}
+
+func (mgr *TemplateManager) GetOptions() []string {
+	return mgr.options
+}
+
+func (mgr *TemplateManager) SetOptions(opt ...string) {
+	mgr.options = opt
 }
 
 func (mgr *TemplateManager) SetLogOutput(w io.Writer) {
