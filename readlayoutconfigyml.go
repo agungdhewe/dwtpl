@@ -6,15 +6,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// readLayoutConfigYml reads the layout configuration from a YAML file and unmarshals it into the provided Layout struct.
+// readLayoutConfigYml reads and decodes a YAML layout configuration file.
 //
 // Parameters:
-// - filepath: the path to the YAML file containing the layout configuration.
-// - layout: a pointer to the Layout struct where the unmarshaled configuration will be stored.
 //
-// Returns:
-// - err: an error if any occurred during the reading or unmarshaling process.
-func readLayoutConfigYml(filepath string, layout *Layout) (err error) {
+//	filepath string - the path to the YAML file
+//	layout *Layout - a pointer to the Layout struct to store the parsed configuration
+//
+// Return:
+//
+//	error - an error, if any, that occurred during the operation
+func readLayoutConfigYml(filepath string, layout *Layout) error {
+	var err error
 	var filedata []byte
 
 	// baca file konfigurasi

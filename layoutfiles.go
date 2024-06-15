@@ -7,16 +7,20 @@ import (
 	"github.com/agungdhewe/dwpath"
 )
 
-// GetLayoutFiles retrieves the layout files from a directory based on the configuration file xxx.yml in that directory.
+// GetLayoutFiles retrieves a list of files in a directory to be used for laying out the view
 //
 // Parameters:
-// - dir: the directory path from which to retrieve the layout files.
+//
+//	dir string - the directory path to read layout data from
 //
 // Returns:
-// - files: a map containing the layout files for each device type (DeviceMobile, DeviceTablet, DeviceDesktop).
-// - exists: a boolean indicating whether the layout files exist.
-// - err: an error if any occurred during the retrieval process.
-func (mgr *TemplateManager) GetLayoutFiles(dir string) (files map[DeviceType][]string, exists bool, err error) {
+//
+//	map[DeviceType][]string - a mapping of DeviceType to a list of file paths
+//	bool - indicating if the operation was successful
+//	error - an error, if any, that occurred during the operation
+func (mgr *TemplateManager) GetLayoutFiles(dir string) (map[DeviceType][]string, bool, error) {
+	var err error
+	var exists bool
 
 	// siapkan untuk membaca data layout
 	basename := filepath.Base(dir)
@@ -30,9 +34,9 @@ func (mgr *TemplateManager) GetLayoutFiles(dir string) (files map[DeviceType][]s
 	if !exists {
 		if err != nil {
 			report_error(err.Error())
-			return nil, false, fmt.Errorf("tidak dapat cek file %s", ymllayoutpath)
+			return nil, false, fmt.Errorf("file %s tidak ditemukan", ymllayoutpath)
 		} else {
-			report_error("file %s tidak ditemukan", ymllayoutpath)
+			report_log("file %s tidak ditemukan", ymllayoutpath)
 			return nil, false, nil
 		}
 	}
@@ -42,11 +46,11 @@ func (mgr *TemplateManager) GetLayoutFiles(dir string) (files map[DeviceType][]s
 	err = readLayoutConfigYml(ymllayoutpath, layoutconfig)
 	if err != nil {
 		report_error(err.Error())
-		return nil, false, fmt.Errorf("tidak dapat membaca file konfigurasi %s", ymllayoutpath)
+		return nil, false, fmt.Errorf("tidak dapat baca file konfigurasi %s", ymllayoutpath)
 	}
 
 	// ambil daftar file sesuai device yang didefinisikan
-	files = make(map[DeviceType][]string)
+	var files = make(map[DeviceType][]string)
 	files[DeviceMobile] = layoutconfig.Device.Mobile
 	files[DeviceTablet] = layoutconfig.Device.Tablet
 	files[DeviceDesktop] = layoutconfig.Device.Desktop
