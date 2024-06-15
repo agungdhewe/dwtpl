@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"path/filepath"
 
 	"github.com/agungdhewe/dwpath"
 )
@@ -26,8 +27,14 @@ type Layout struct {
 	} `yaml:"device"`
 }
 
-// siapkan template manager
-// sebelum memanggil ini, harus panggil dwtpl.New() terlebih dahulu
+// New initializes a new TemplateManager with the given Configuration.
+//
+// Parameters:
+// - config: a pointer to a Configuration struct.
+//
+// Returns:
+// - a pointer to a TemplateManager struct, or nil if the template directory is not found.
+// - an error if the template directory is not found.
 func New(config *Configuration, opt ...string) (*TemplateManager, error) {
 	var exists bool
 
@@ -50,9 +57,10 @@ func New(config *Configuration, opt ...string) (*TemplateManager, error) {
 	return mgr, nil
 }
 
-func (mgr *TemplateManager) Ready() {
-}
-
+// SetLogOutput sets the output destination for the logger.
+//
+// Parameters:
+// - w: an io.Writer interface to set as the output destination.
 func (mgr *TemplateManager) GetOptions() []string {
 	return mgr.options
 }
@@ -65,16 +73,26 @@ func (mgr *TemplateManager) SetLogOutput(w io.Writer) {
 	mgr.logger.SetOutput(w)
 }
 
+// GetConfiguration returns the Configuration object of the TemplateManager.
+//
+// It does not take any parameters.
+// It returns a pointer to a Configuration object.
 func (mgr *TemplateManager) GetConfiguration() *Configuration {
 	return &mgr.configuration
 }
 
-func (mgr *TemplateManager) GetPage(pagename string, device DeviceType) (*template.Template, bool, error) {
-	var tpl *template.Template
-	var exists bool
-	var err error
+// GetPage retrieves a template for a given page and device type.
+//
+// Parameters:
+// - pagename: the name of the page to retrieve.
+// - device: the device type for which to retrieve the template.
+//
+// Returns:
+// - tpl: the template for the given page and device type.
+// - exists: a boolean indicating whether the template exists.
+// - err: an error if any occurred during the retrieval process.
+func (mgr *TemplateManager) GetPage(pagename string, device DeviceType) (tpl *template.Template, exists bool, err error) {
 
-	exists = false
 	if mgr.configuration.Cached {
 		// ambil dari cache
 		report_log("cek data %s dari cache", pagename)
@@ -89,20 +107,34 @@ func (mgr *TemplateManager) GetPage(pagename string, device DeviceType) (*templa
 		var pagedata map[DeviceType]*template.Template
 		var ispage bool
 		report_log("ambil data %s dari disk", pagename)
-		pagedata, ispage, err = mgr.ParsePageTemplate(pagename, mgr.pagesDirLocation)
+
+		// cek direktori halaman
+		pagedir := filepath.Join(mgr.pagesDirLocation, pagename)
+		exists, err = dwpath.IsDirectoryExists(pagedir)
+		if !exists {
+			if err != nil {
+				report_error(err.Error())
+				return nil, false, fmt.Errorf("tidak dapat cek direktori %s", pagedir)
+			} else {
+				report_error("direktori %s tidak ditemukan", pagedir)
+				return nil, false, nil
+			}
+		}
+
+		// mulai parse halaman
+		pagedata, ispage, err = mgr.ParsePageTemplate(pagedir)
 		if err != nil {
-			report_error("tidak dapat parse halaman %s", pagename)
-			return nil, false, err // pagedata, exists, error
+			report_error(err.Error())
+			return nil, false, fmt.Errorf("tidak dapat parse halaman %s", pagename)
 		}
 
 		if !ispage {
-			report_error("struktur pada %s tidak sesuai dengan struktur halaman", pagename)
 			return nil, false, fmt.Errorf("struktur pada halaman %s tidak ditemukan", pagename)
 		}
 
 		tpl, exists = pagedata[device]
 		if !exists {
-			report_error("halaman %s untuk device %s tidak ditemukan", pagename, device)
+			return nil, false, fmt.Errorf("halaman %s untuk device %s tidak ditemukan", pagename, device)
 		}
 
 		// apabila configured dengan cache, simpan kembali data ke cache
@@ -111,6 +143,8 @@ func (mgr *TemplateManager) GetPage(pagename string, device DeviceType) (*templa
 		}
 
 	}
+
+	// semua ok
 	report_log("ok, sajikan halaman %s untuk device %s", pagename, device)
 	return tpl, true, nil
 
