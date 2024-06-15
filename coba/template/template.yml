@@ -3,8 +3,7 @@ name: "Layout untuk halaman template"
 device:
   mobile:
     - layout.html
+    - header.html
+    - footer.html
   tablet:
     - layout.html
-  desktop:
-    - layout.html
-
