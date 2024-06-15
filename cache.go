@@ -2,8 +2,8 @@ package dwtpl
 
 import (
 	"fmt"
+	"html/template"
 	"path/filepath"
-	"text/template"
 )
 
 // CachePages caches the pages in the specified directory by parsing the page templates and storing them in the cache.

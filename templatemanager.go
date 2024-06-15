@@ -2,10 +2,10 @@ package dwtpl
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"path/filepath"
-	"text/template"
 
 	"github.com/agungdhewe/dwpath"
 )
