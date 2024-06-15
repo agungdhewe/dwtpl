@@ -13,6 +13,13 @@ const (
 	colorFgGray  string = "\033[38;5;245m"
 )
 
+// report_log logs a message with optional arguments and additional information about the caller.
+//
+// Parameters:
+// - msg: a string representing the message to be logged.
+// - args: optional arguments to be formatted into the message.
+//
+// Returns: None.
 func report_log(msg string, args ...any) {
 	if mgr.logger.Writer() == io.Discard {
 		return
@@ -26,6 +33,15 @@ func report_log(msg string, args ...any) {
 	}
 }
 
+// report_error logs an error message with optional arguments and additional information about the caller.
+//
+// Parameters:
+// - msg: a string representing the error message to be logged.
+// - args: optional arguments to be formatted into the error message.
+//
+// The function logs the error message along with the file name and line number of the caller.
+// If the logger's writer is set to io.Discard, the error message will not be logged.
+// The error message is formatted with color codes to highlight the error.
 func report_error(msg string, args ...any) {
 	if mgr.logger.Writer() == io.Discard {
 		return

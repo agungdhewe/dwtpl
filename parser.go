@@ -1,26 +1,38 @@
 package dwtpl
 
 import (
+	"fmt"
 	"path/filepath"
 	"text/template"
 
 	"github.com/agungdhewe/dwpath"
 )
 
+// ParsePageTemplate parses the page template from the specified directory.
+//
+// Parameter:
+//
+//	pagedir - the directory path where the page template is located.
+//
+// Return type(s):
+//
+//	tpldata - a map of DeviceType to template.Template containing parsed templates for different devices.
+//	ispage - a boolean indicating if the directory is a valid page directory.
+//	err - an error indicating any issues encountered during parsing.
 func (mgr *TemplateManager) ParsePageTemplate(pagedir string) (tpldata map[DeviceType]*template.Template, ispage bool, err error) {
 	// ambil data layout
 	layoutfiles, _, err := mgr.GetLayoutFiles(mgr.configuration.Dir)
 	if err != nil {
-		report_error("error saat memuat layout template")
-		return nil, false, err
+		report_error(err.Error())
+		return nil, false, fmt.Errorf("tidak dapat memuat layout template dari %s", mgr.configuration.Dir)
 	}
 
 	// ambil data halaman
 	var pagefiles map[DeviceType][]string
 	pagefiles, ispage, err = mgr.GetLayoutFiles(pagedir)
 	if err != nil {
-		report_error("error saat memuat layout halaman")
-		return nil, false, err //tpldata, ispage, err
+		report_error(err.Error())
+		return nil, false, fmt.Errorf("tidak dapat memuat layout halaman dari %s", pagedir)
 	}
 
 	if !ispage {
@@ -34,8 +46,8 @@ func (mgr *TemplateManager) ParsePageTemplate(pagedir string) (tpldata map[Devic
 		files := append(pagefiles[device], layoutfiles[device]...)
 		tpl, err = template.ParseFiles(files...)
 		if err != nil {
-			report_error("tidak dapat parse file template untuk halaman dari %s", pagedir)
-			return nil, false, err
+			report_error(err.Error())
+			return nil, false, fmt.Errorf("tidak dapat parse file template untuk halaman dari %s", pagedir)
 		}
 		tpldata[device] = tpl
 	}
@@ -49,8 +61,8 @@ func (mgr *TemplateManager) ParsePageTemplateX(pagename string, pagesdatadir str
 	// ambil data layout
 	layoutfiles, _, err := mgr.GetLayoutFiles(mgr.configuration.Dir)
 	if err != nil {
-		report_error("error saat memuat layout template")
-		return nil, false, err
+		report_error(err.Error())
+		return nil, false, fmt.Errorf("tidak dapat memuat layout template dari %s", mgr.configuration.Dir)
 	}
 
 	// cek direktori halaman
@@ -58,8 +70,8 @@ func (mgr *TemplateManager) ParsePageTemplateX(pagename string, pagesdatadir str
 	exists, err = dwpath.IsDirectoryExists(pagedir)
 	if !exists {
 		if err != nil {
-			report_error("ada kesalahan saat cek direktori %s", pagedir)
-			return nil, false, err
+			report_error(err.Error())
+			return nil, false, fmt.Errorf("tidak dapat cek direktori %s", pagedir)
 		} else {
 			report_error("direktori %s tidak ditemukan", pagedir)
 			return nil, false, nil
@@ -70,8 +82,8 @@ func (mgr *TemplateManager) ParsePageTemplateX(pagename string, pagesdatadir str
 	var pagefiles map[DeviceType][]string
 	pagefiles, ispage, err = mgr.GetLayoutFiles(pagedir)
 	if err != nil {
-		report_error("error saat memuat layout halaman")
-		return nil, false, err //tpldata, ispage, err
+		report_error(err.Error())
+		return nil, false, fmt.Errorf("tidak dapat memuat layout halaman dari %s", pagedir)
 	}
 
 	if !ispage {
@@ -86,8 +98,8 @@ func (mgr *TemplateManager) ParsePageTemplateX(pagename string, pagesdatadir str
 		files := append(pagefiles[device], layoutfiles[device]...)
 		tpl, err = template.ParseFiles(files...)
 		if err != nil {
-			report_error("tidak dapat parse file template untuk halaman %s", pagename)
-			return nil, false, err
+			report_error(err.Error())
+			return nil, false, fmt.Errorf("tidak dapat parse file template untuk halaman %s", pagename)
 		}
 		tpldata[device] = tpl
 	}
