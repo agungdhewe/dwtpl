@@ -9,18 +9,16 @@ import (
 // CachePages caches the pages in the specified directory by parsing the page templates and storing them in the cache.
 //
 // Parameters:
-// - dir: The directory where the pages are located.
+// - dir: The directory containing the pages to cache.
 //
 // Returns:
-// - err: An error if there was a problem caching the pages.
-func (mgr *TemplateManager) CachePages(dir string) (err error) {
-	var pages []string
-
+// - error: An error if there was a problem parsing the page templates or if the pattern could not be obtained.
+func (mgr *TemplateManager) CachePages(dir string) error {
 	mgr.pagesDirLocation = dir
 
 	// baca direktori pagedir
 	pattern := filepath.Join(mgr.pagesDirLocation, "*")
-	pages, err = filepath.Glob(pattern)
+	pages, err := filepath.Glob(pattern)
 	if err != nil {
 		report_error(err.Error())
 		return fmt.Errorf("tidak dapat mengambil data pattern %s", pattern)
@@ -28,7 +26,7 @@ func (mgr *TemplateManager) CachePages(dir string) (err error) {
 
 	for _, pagedir := range pages {
 		pagename := filepath.Base(pagedir)
-		tpldata, ispage, err := mgr.ParsePageTemplate(pagedir)
+		tpldata, ispage, err := mgr.ParsePageTemplate(pagename, filepath.Join(pagedir, ".."))
 		if err != nil {
 			report_error(err.Error())
 			return fmt.Errorf("tidak dapat parse halaman %s", pagename)
@@ -42,23 +40,21 @@ func (mgr *TemplateManager) CachePages(dir string) (err error) {
 	return nil
 }
 
-// GetCachedPage retrieves a cached page template for the specified page name and device type.
+// GetCachedPage retrieves a cached page template based on the page name and device type.
 //
 // Parameters:
-// - pagename: The name of the page to retrieve the template for.
-// - device: The device type for which to retrieve the template.
-//
+// - pagename: The name of the page to retrieve.
+// - device: The type of device for which the page template is needed.
 // Returns:
-// - tpl: The cached page template, or nil if not found.
-// - err: A boolean indicating if an error occurred while retrieving the template.
-func (mgr *TemplateManager) GetCachedPage(pagename string, device DeviceType) (tpl *template.Template, err bool) {
+// - *template.Template: The cached page template.
+// - bool: A boolean indicating if the page template was found in the cache.
+func (mgr *TemplateManager) GetCachedPage(pagename string, device DeviceType) (*template.Template, bool) {
 	pagedata, pageinmap := mgr.cachedata[pagename]
 	if !pageinmap {
 		return nil, false
 	}
 
-	var deviceinmap bool
-	tpl, deviceinmap = pagedata[device]
+	tpl, deviceinmap := pagedata[device]
 	if !deviceinmap {
 		return nil, false
 	}
