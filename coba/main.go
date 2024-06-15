@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -10,11 +9,6 @@ import (
 
 	"github.com/agungdhewe/dwtpl"
 )
-
-type TemplateData struct {
-	Nama   string
-	Alamat string
-}
 
 func main() {
 
@@ -47,18 +41,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	tpl, exists, _ := mgr.GetPage("home", dwtpl.DeviceMobile)
-	if exists {
-		tpldata := TemplateData{
-			Nama:   "Agung Nugroho",
-			Alamat: "Propinsi Tangerang Raya",
-		}
-
-		var buff bytes.Buffer
-		tpl.Execute(&buff, tpldata)
-		fmt.Println("===============================")
-		fmt.Println(buff.String())
-		fmt.Println("===============================")
-	}
+	mgr.GetPage("homes", dwtpl.DeviceMobile)
 
 }
