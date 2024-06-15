@@ -1,5 +1,6 @@
-name: "Layout untuk halaman home"
-
+name: "home"
+title: "Home"
+auth: true
 device:
   mobile:
     - home.html

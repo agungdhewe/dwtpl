@@ -2,7 +2,6 @@ package dwtpl
 
 import (
 	"fmt"
-	"html/template"
 	"path/filepath"
 )
 
@@ -26,15 +25,13 @@ func (mgr *TemplateManager) CachePages(dir string) error {
 
 	for _, pagedir := range pages {
 		pagename := filepath.Base(pagedir)
-		tpldata, ispage, err := mgr.ParsePageTemplate(pagename, filepath.Join(pagedir, ".."))
+		pagetemplate, err := mgr.ParseTemplate(pagename, filepath.Join(pagedir, ".."))
 		if err != nil {
 			report_error(err.Error())
 			return fmt.Errorf("tidak dapat parse halaman %s", pagename)
 		}
 
-		if ispage {
-			mgr.cachedata[pagename] = tpldata
-		}
+		mgr.cachedpages[pagename] = pagetemplate
 	}
 
 	return nil
@@ -48,16 +45,11 @@ func (mgr *TemplateManager) CachePages(dir string) error {
 // Returns:
 // - *template.Template: The cached page template.
 // - bool: A boolean indicating if the page template was found in the cache.
-func (mgr *TemplateManager) GetCachedPage(pagename string, device DeviceType) (*template.Template, bool) {
-	pagedata, pageinmap := mgr.cachedata[pagename]
+func (mgr *TemplateManager) GetCachedPage(pagename string) (*PageTemplate, bool) {
+	pagetemplate, pageinmap := mgr.cachedpages[pagename]
 	if !pageinmap {
 		return nil, false
 	}
 
-	tpl, deviceinmap := pagedata[device]
-	if !deviceinmap {
-		return nil, false
-	}
-
-	return tpl, true
+	return pagetemplate, true
 }

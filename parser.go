@@ -18,16 +18,15 @@ import (
 // - tpldata: a map of device types to template.Template objects (map[DeviceType]*template.Template)
 // - ispage: a boolean indicating whether the page directory exists (bool)
 // - err: an error if there was an issue parsing the page template (error)
-func (mgr *TemplateManager) ParsePageTemplate(pagename string, pagesdatadir string) (map[DeviceType]*template.Template, bool, error) {
+func (mgr *TemplateManager) ParseTemplate(pagename string, pagesdatadir string) (*PageTemplate, error) {
 	var exists bool
-	var ispage bool
 	var err error
 
 	// ambil data layout
 	layoutfiles, _, err := mgr.GetLayoutFiles(mgr.configuration.Dir)
 	if err != nil {
 		report_error(err.Error())
-		return nil, false, fmt.Errorf("error saat memuat layout template dari %s", mgr.configuration.Dir)
+		return nil, fmt.Errorf("error saat memuat layout template dari %s", mgr.configuration.Dir)
 	}
 
 	// cek direktori halaman
@@ -36,31 +35,26 @@ func (mgr *TemplateManager) ParsePageTemplate(pagename string, pagesdatadir stri
 	if !exists {
 		if err != nil {
 			report_error(err.Error())
-			return nil, false, fmt.Errorf("direktori %s tidak ditemukan", pagedir)
+			return nil, fmt.Errorf("direktori %s tidak ditemukan", pagedir)
 		} else {
 			report_error("direktori %s tidak ditemukan", pagedir)
-			return nil, false, nil
+			return nil, nil
 		}
 	}
 
 	// ambil data halaman
-	var pagefiles map[DeviceType][]string
-	pagefiles, ispage, err = mgr.GetLayoutFiles(pagedir)
+	var pageconfig *PageConfig
+
+	pageconfig, err = mgr.GetPageConfig(pagedir)
 	if err != nil {
 		report_error(err.Error())
-		return nil, false, fmt.Errorf("error saat memuat layout halaman dari %s", pagedir)
-	}
-
-	if !ispage {
-		report_log("%s bukan direktori halaman", pagedir)
-		return nil, false, nil
+		return nil, fmt.Errorf("tidak dapat memuat konfigurasi halaman %s", pagedir)
 	}
 
 	tpldata := map[DeviceType]*template.Template{}
-
 	for _, device := range []DeviceType{DeviceMobile, DeviceTablet, DeviceDesktop} {
 		var tpl *template.Template
-		files := append(pagefiles[device], layoutfiles[device]...)
+		files := append(pageconfig.layoutfiles[device], layoutfiles[device]...)
 
 		t := template.New(fmt.Sprintf("%s.html", pagename))
 		if mgr.options != nil {
@@ -70,10 +64,15 @@ func (mgr *TemplateManager) ParsePageTemplate(pagename string, pagesdatadir stri
 		tpl, err = t.ParseFiles(files...)
 		if err != nil {
 			report_error(err.Error())
-			return nil, false, fmt.Errorf("tidak dapat parse file template untuk halaman %s", pagename)
+			return nil, fmt.Errorf("tidak dapat parse file template untuk halaman %s", pagename)
 		}
 		tpldata[device] = tpl
 	}
 
-	return tpldata, true, nil
+	pagetemplate := &PageTemplate{
+		Config: pageconfig,
+		Data:   tpldata,
+	}
+
+	return pagetemplate, nil
 }

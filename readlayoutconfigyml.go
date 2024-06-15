@@ -34,3 +34,22 @@ func readLayoutConfigYml(filepath string, layout *Layout) error {
 
 	return nil
 }
+
+func readPageConfigYml(filepath string, pageconfig *PageConfig) error {
+	var err error
+	var filedata []byte
+
+	// baca file konfigurasi
+	filedata, err = os.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+
+	// decode file yaml
+	err = yaml.Unmarshal(filedata, &pageconfig)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

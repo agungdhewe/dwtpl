@@ -41,6 +41,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	mgr.GetPage("homes", dwtpl.DeviceMobile)
+	page, err := mgr.GetPage("home")
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 }

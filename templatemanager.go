@@ -13,8 +13,9 @@ type TemplateManager struct {
 	logger           *log.Logger
 	configuration    Configuration
 	pagesDirLocation string
-	cachedata        map[string]map[DeviceType]*template.Template
-	options          []string
+	//cachedata        map[string]map[DeviceType]*template.Template
+	cachedpages map[string]*PageTemplate
+	options     []string
 }
 
 type Layout struct {
@@ -26,6 +27,23 @@ type Layout struct {
 	} `yaml:"device"`
 }
 
+type PageConfig struct {
+	Name   string `yaml:"name"`
+	Device struct {
+		Mobile  []string `yaml:"mobile"`
+		Tablet  []string `yaml:"tablet"`
+		Desktop []string `yaml:"desktop"`
+	} `yaml:"device"`
+	Title       string `yaml:"title"`
+	Auth        bool   `yaml:"auth"`
+	layoutfiles map[DeviceType][]string
+}
+
+type PageTemplate struct {
+	Config *PageConfig
+	Data   map[DeviceType]*template.Template
+}
+
 // siapkan template manager
 // sebelum memanggil ini, harus panggil dwtpl.New() terlebih dahulu
 func New(config *Configuration, opt ...string) (*TemplateManager, error) {
@@ -35,8 +53,9 @@ func New(config *Configuration, opt ...string) (*TemplateManager, error) {
 	mgr = &TemplateManager{
 		logger:        log.New(log.Writer(), "", 0),
 		configuration: *config,
-		cachedata:     make(map[string]map[DeviceType]*template.Template),
-		options:       opt,
+		//cachedata:     make(map[string]map[DeviceType]*template.Template),
+		cachedpages: make(map[string]*PageTemplate),
+		options:     opt,
 	}
 
 	// cek apakah direktori template ada
@@ -96,16 +115,14 @@ func (mgr *TemplateManager) GetConfiguration() *Configuration {
 // - *template.Template: the retrieved page template, or nil if not found.
 // - bool: true if the page template exists, false otherwise.
 // - error: an error if there was a problem retrieving the page template.
-func (mgr *TemplateManager) GetPage(pagename string, device DeviceType) (*template.Template, bool, error) {
-	var tpl *template.Template
+func (mgr *TemplateManager) GetPage(pagename string) (pagetemplate *PageTemplate, err error) {
 	var exists bool
-	var err error
 
 	exists = false
 	if mgr.configuration.Cached {
 		// ambil dari cache
 		report_log("cek data %s dari cache", pagename)
-		tpl, exists = mgr.GetCachedPage(pagename, device)
+		pagetemplate, exists = mgr.GetCachedPage(pagename)
 		if !exists {
 			report_log("data halaman %s tidak ditemukan di cache", pagename)
 		}
@@ -113,31 +130,39 @@ func (mgr *TemplateManager) GetPage(pagename string, device DeviceType) (*templa
 
 	if !exists {
 		// di cache belum ada, coba cari langsung dari disk
-		var pagedata map[DeviceType]*template.Template
-		var ispage bool
+		var pagetemplate *PageTemplate
 		report_log("ambil data %s dari disk", pagename)
-		pagedata, ispage, err = mgr.ParsePageTemplate(pagename, mgr.pagesDirLocation)
+		pagetemplate, err = mgr.ParseTemplate(pagename, mgr.pagesDirLocation)
 		if err != nil {
 			report_error(err.Error())
-			return nil, false, fmt.Errorf("tidak dapat parse halaman %s", pagename)
-		}
-
-		if !ispage {
-			return nil, false, fmt.Errorf("struktur pada halaman %s tidak ditemukan", pagename)
-		}
-
-		tpl, exists = pagedata[device]
-		if !exists {
-			report_log("halaman %s untuk device %s tidak ditemukan", pagename, device)
+			return nil, fmt.Errorf("tidak dapat parse halaman %s", pagename)
 		}
 
 		// apabila configured dengan cache, simpan kembali data ke cache
 		if mgr.configuration.Cached {
-			mgr.cachedata[pagename] = pagedata
+			mgr.cachedpages[pagename] = pagetemplate
 		}
 
 	}
-	report_log("ok, sajikan halaman %s untuk device %s", pagename, device)
-	return tpl, true, nil
+
+	if pagetemplate == nil {
+		return nil, fmt.Errorf("halaman %s tidak ditemukan", pagename)
+	}
+
+	return pagetemplate, nil
 
 }
+
+// func (pageconfig *PageConfig) GetLayoutFiles(device DeviceType) (files []string, reflecterr error) {
+// 	defer func() {
+// 		if err := recover(); err != nil {
+// 			reflecterr = fmt.Errorf("%v", err)
+// 		}
+// 	}()
+
+// 	r := reflect.ValueOf(pageconfig)
+// 	f := reflect.Indirect(r).FieldByName(string(device))
+// 	files = f.Interface().([]string)
+
+// 	return
+// }
