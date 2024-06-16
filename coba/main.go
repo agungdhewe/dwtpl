@@ -53,6 +53,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Println(page.Config.Title)
+
 	tpl, inmap := page.Data[dwtpl.DeviceMobile]
 	if !inmap {
 		fmt.Println("tidak ada halaman mobile")
