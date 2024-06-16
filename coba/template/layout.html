@@ -1,5 +1,9 @@
-<html>
-	<body>
-		ini layout
-	</body>
-</html>
+{{define "basiclayout"}}
+-------------------
+	{{block "pageheader" .}}{{end}}
+-------------------
+	{{block "pagecontent" .}}{{end}}
+-------------------
+	{{block "pagefooter" .}}{{end}}
+-------------------
+{{end}}

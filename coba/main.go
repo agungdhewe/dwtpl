@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +10,11 @@ import (
 
 	"github.com/agungdhewe/dwtpl"
 )
+
+type PageData struct {
+	Nama   string
+	Alamat string
+}
 
 func main() {
 
@@ -46,5 +52,25 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
+	tpl, inmap := page.Data[dwtpl.DeviceMobile]
+	if !inmap {
+		fmt.Println("tidak ada halaman mobile")
+		os.Exit(1)
+	}
+
+	data := &PageData{
+		Nama:   "Agung",
+		Alamat: "Jakarta",
+	}
+
+	buff := new(bytes.Buffer)
+	err = tpl.Execute(buff, data)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println(buff.String())
 
 }
