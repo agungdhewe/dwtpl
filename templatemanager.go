@@ -28,14 +28,16 @@ type Layout struct {
 }
 
 type PageConfig struct {
-	Name   string `yaml:"name"`
-	Device struct {
+	Name        string   `yaml:"name"`
+	Title       string   `yaml:"title"`
+	Description string   `yaml:"description"`
+	Tags        []string `yaml:"tags"`
+	Device      struct {
 		Mobile  []string `yaml:"mobile"`
 		Tablet  []string `yaml:"tablet"`
 		Desktop []string `yaml:"desktop"`
 	} `yaml:"device"`
-	Title       string `yaml:"title"`
-	Auth        bool   `yaml:"auth"`
+	Auth        bool `yaml:"auth"`
 	layoutfiles map[DeviceType][]string
 }
 
