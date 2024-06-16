@@ -132,9 +132,8 @@ func (mgr *TemplateManager) GetPage(pagename string) (pagetemplate *PageTemplate
 
 	if !exists {
 		// di cache belum ada, coba cari langsung dari disk
-		var pagetemplate *PageTemplate
 		report_log("ambil data %s dari disk", pagename)
-		pagetemplate, err = mgr.ParseTemplate(pagename, mgr.pagesDirLocation)
+		pt, err := mgr.ParseTemplate(pagename, mgr.pagesDirLocation)
 		if err != nil {
 			report_error(err.Error())
 			return nil, fmt.Errorf("tidak dapat parse halaman %s", pagename)
@@ -142,9 +141,10 @@ func (mgr *TemplateManager) GetPage(pagename string) (pagetemplate *PageTemplate
 
 		// apabila configured dengan cache, simpan kembali data ke cache
 		if mgr.configuration.Cached {
-			mgr.cachedpages[pagename] = pagetemplate
+			mgr.cachedpages[pagename] = pt
 		}
 
+		pagetemplate = pt
 	}
 
 	if pagetemplate == nil {
