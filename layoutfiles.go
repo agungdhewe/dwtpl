@@ -68,11 +68,8 @@ func (mgr *TemplateManager) GetPageConfig(dir string) (*PageConfig, error) {
 	if !exists {
 		if err != nil {
 			report_error(err.Error())
-			return nil, fmt.Errorf("file %s tidak ditemukan", ymllayoutpath)
-		} else {
-			report_log("file %s tidak ditemukan", ymllayoutpath)
-			return nil, nil
 		}
+		return nil, fmt.Errorf("file %s tidak ditemukan", ymllayoutpath)
 	}
 
 	// baca konfigurasi
